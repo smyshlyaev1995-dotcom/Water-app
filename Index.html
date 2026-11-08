@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f6fb2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>Водоподготовка</title>
+<style>
+  :root { --blue:#1f6fb2; --blue-dark:#175a91; --bg:#eef2f7; --card:#fff; --text:#1a1a1a; --muted:#6b7a8c; --danger:#e74c3c; --warn:#b7791f; --ok:#1e8449; --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 16px; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); -webkit-font-smoothing: antialiased; }
+  .app-header { background: var(--blue); color:#fff; padding: 12px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .app-header h1 { font-size: 17px; margin: 0; flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .icon-btn { background: rgba(255,255,255,.18); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
+  .icon-btn:active { background: rgba(255,255,255,.35); }
+  .screen { display: none; min-height: calc(100vh - 64px); }
+  .screen.active { display: block; }
+  .search-box { padding: 12px 16px 6px; }
+  .search-box input { width: 100%; padding: 12px 14px; border: none; border-radius: 12px; font-size: 15px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .reminders { padding: 6px 16px 0; }
+  .reminders h3 { font-size: 13px; color: var(--muted); margin: 10px 0 8px; text-transform: uppercase; letter-spacing: .5px; }
+  .reminder { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; font-size: 14px; cursor: pointer; background: #fff6e0; border-left: 3px solid var(--warn); }
+  .reminder.over { background: #fdecea; border-left-color: var(--danger); }
+  .client-list { padding: 8px 16px 100px; }
+  .client-card { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); cursor: pointer; display: flex; align-items: center; gap: 12px; }
+  .client-card:active { transform: scale(.98); }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--blue); color: #fff; font-weight: 600; font-size: 17px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .client-info { flex: 1; min-width: 0; }
+  .client-name { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+  .client-meta { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .b-overdue { background: #fdecea; color: var(--danger); }
+  .b-soon { background: #fff6e0; color: var(--warn); }
+  .b-ok { background: #e6f6ec; color: var(--ok); }
+  .empty { color: var(--muted); text-align: center; padding: 50px 20px; font-size: 15px; }
+  .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+  .fab { position: fixed; right: 20px; bottom: calc(20px + var(--safe-bottom)); width: 60px; height: 60px; border-radius: 50%; background: var(--blue); color: #fff; border: none; font-size: 32px; box-shadow: 0 4px 12px rgba(31,111,178,.4); cursor: pointer; z-index: 50; display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .fab:active { transform: scale(.92); }
+  .fab.hidden { display: none; }
+  .detail-body { padding: 12px 16px 100px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .field input, .field textarea { width: 100%; padding: 12px 14px; border: 1px solid #dde3eb; border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff; }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--blue); }
+  .btn { padding: 13px 18px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; font-family: inherit; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:active { background: var(--blue-dark); }
+  .btn-secondary { background: #eef2f7; color: var(--text); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .section-title { font-size: 13px; font-weight: 600; color: var(--muted); margin: 24px 0 10px; text-transform: uppercase; letter-spacing: .5px; display: flex; justify-content: space-between; align-items: center; }
+  .section-title button { background: none; border: none; color: var(--blue); font-weight: 600; font-size: 13px; cursor: pointer; padding: 0; }
+  .visit-card { background: var(--card); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  .visit-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .visit-date { font-weight: 600; color: var(--blue); font-size: 14px; }
+  .visit-comment { font-size: 14px; white-space: pre-wrap; color: #333; margin-bottom: 8px; }
+  .files { display: flex; flex-wrap: wrap; gap: 6px; }
+  .file-chip { font-size: 12px; padding: 6px 10px; border-radius: 8px; background: #eef6ff; color: var(--blue); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; max-width: 100%; }
+  .file-chip span.name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+  .file-chip .del { color: var(--danger); font-weight: 600; padding: 0 0 0 4px; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  .modal-bg.open { display: flex; }
+  .modal { background: #fff; width: 100%; max-width: 600px; border-radius: 20px 20px 0 0; padding: 20px 16px calc(20px + var(--safe-bottom)); max-height: 90vh; overflow-y: auto; animation: slideUp .25s ease-out; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal h2 { margin: 0 0 16px; font-size: 18px; }
+  .file-pick { border: 2px dashed #dde3eb; border-radius: 10px; padding: 20px; text-align: center; color: var(--muted); font-size: 14px; cursor: pointer; margin-bottom: 12px; display: block; }
+  .file-pick:active { background: #f7fbff; }
+  .pending-files { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .pending-file { font-size: 12px; padding: 6px 10px; border-radius: 8px; background: #eef6ff; color: var(--blue); display: inline-flex; align-items: center; gap: 4px; max-width: 100%; }
+  .pending-file span { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pending-file button { background: none; border: none; color: var(--danger); padding: 0 0 0 4px; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(34,34,34,.95); color: #fff; padding: 11px 18px; border-radius: 24px; font-size: 14px; opacity: 0; transition: all .25s; z-index: 300; pointer-events: none; max-width: 85%; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app-header">
+  <button class="icon-btn" id="backBtn" style="display:none" onclick="goBack()">←</button>
+  <h1 id="title">Клиенты</h1>
+  <button class="icon-btn" onclick="openMenu()">☰</button>
+</div>
+<div class="screen active" id="screenList">
+  <div class="search-box"><input id="searchInput" placeholder="🔍 Поиск клиента..." oninput="renderClients()"></div>
+  <div class="reminders" id="remindersBox"></div>
+  <div class="client-list" id="clientList"></div>
+</div>
+<div class="screen" id="screenDetail"><div class="detail-body" id="detailBody"></div></div>
+<button class="fab" id="fabBtn" onclick="newClient()">+</button>
+<div class="modal-bg" id="visitModal" onclick="if(event.target===this)closeVisitModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>🛠 Новое обслуживание</h2>
+    <div class="field"><label>Дата</label><input type="date" id="visitDate"></div>
+    <div class="field"><label>Что сделано / комментарий</label><textarea id="visitComment"></textarea></div>
+    <div class="field">
+      <label>Файлы</label>
+      <label class="file-pick" for="visitFiles">📎 Выбрать файлы</label>
+      <input type="file" id="visitFiles" multiple style="display:none" onchange="onFilesSelected(this)">
+      <div class="pending-files" id="pendingFiles"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addVisit()">✓ Сохранить</button>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="closeVisitModal()">Отмена</button>
+  </div>
+</div>
+<div class="modal-bg" id="menuModal" onclick="if(event.target===this)closeMenu()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>⚙️ Настройки</h2>
+    <button class="btn btn-secondary" style="margin-bottom:8px" onclick="exportData()">⬇ Резервная копия</button>
+    <button class="btn btn-secondary" onclick="closeMenu()">Закрыть</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let clients = JSON.parse(localStorage.getItem('wp_clients') || '[]');
+let currentId = null, db = null, pendingFiles = [];
+function initDB() { return new Promise((res, rej) => { const r = indexedDB.open('wp_files', 1); r.onupgradeneeded = e => e.target.result.createObjectStore('files', { keyPath: 'id' }); r.onsuccess = e => { db = e.target.result; res(); }; r.onerror = rej; }); }
+function dbSave(id, blob, name, type) { return new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'); tx.objectStore('files').put({ id, blob, name, type }); tx.oncomplete = res; tx.onerror = rej; }); }
+function dbGet(id) { return new Promise((res, rej) => { const tx = db.transaction('files', 'readonly'); const r = tx.objectStore('files').get(id); r.onsuccess = () => res(r.result); r.onerror = rej; }); }
+function dbDel(id) { return new Promise(res => { const tx = db.transaction('files', 'readwrite'); tx.objectStore('files').delete(id); tx.oncomplete = res; }); }
+function saveClients() { localStorage.setItem('wp_clients', JSON.stringify(clients)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function todayStr() { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDate(d) { return d ? new Date(d+'T00:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—'; }
+function daysUntil(s) { if (!s) return null; return Math.round((new Date(s+'T00:00:00') - new Date(todayStr()+'T00:00:00'))/86400000); }
+function statusOf(c) { const d = daysUntil(c.nextService); if (d === null) return { cls: 'b-ok', label: '—' }; if (d < 0) return { cls: 'b-overdue', label: '⚠ '+Math.abs(d)+' дн.' }; if (d === 0) return { cls: 'b-soon', label: 'сегодня' }; if (d <= 14) return { cls: 'b-soon', label: d+' дн.' }; return { cls: 'b-ok', label: fmtDate(c.nextService) }; }
+function esc(s) { return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function initials(n) { const p = String(n||'?').trim().split(/\s+/); return ((p[0]?.[0]||'?')+(p[1]?.[0]||'')).toUpperCase(); }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2500); }
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); const isDetail = id === 'screenDetail'; document.getElementById('backBtn').style.display = isDetail ? 'flex' : 'none'; document.getElementById('fabBtn').classList.toggle('hidden', isDetail); window.scrollTo(0, 0); }
+function goBack() { currentId = null; document.getElementById('title').textContent = 'Клиенты'; showScreen('screenList'); renderClients(); }
+function renderClients() {
+  const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+  const filtered = clients.filter(c => !q || (c.name+' '+(c.phone||'')+' '+(c.address||'')).toLowerCase().includes(q)).sort((a,b) => (a.name||'').localeCompare(b.name||'', 'ru'));
+  const rem = document.getElementById('remindersBox');
+  const remList = clients.filter(c => c.nextService && daysUntil(c.nextService) !== null && daysUntil(c.nextService) <= 14).sort((a,b) => daysUntil(a.nextService) - daysUntil(b.nextService));
+  rem.innerHTML = (remList.length && !q) ? '<h3>⏰ Требуют внимания ('+remList.length+')</h3>' + remList.map(c => { const d = daysUntil(c.nextService); const txt = d < 0 ? 'просрочено '+Math.abs(d)+' дн.' : d === 0 ? 'сегодня' : 'через '+d+' дн.'; return `<div class="reminder ${d<0?'over':''}" onclick="openClient('${c.id}')"><b>${esc(c.name)}</b> — ${txt}</div>`; }).join('') : '';
+  const box = document.getElementById('clientList');
+  box.innerHTML = !filtered.length ? `<div class="empty"><span class="empty-icon">👥</span>${q?'Никого не нашли':'Нажмите + чтобы добавить'}</div>` : filtered.map(c => { const st = statusOf(c); const sub = [c.phone, c.address].filter(Boolean).join(' · ') || c.system || 'нет данных'; return `<div class="client-card" onclick="openClient('${c.id}')"><div class="avatar">${esc(initials(c.name))}</div><div class="client-info"><div class="client-name">${esc(c.name)}</div><div class="client-meta">${esc(sub)}</div></div><span class="badge ${st.cls}">${st.label}</span></div>`; }).join('');
+}
+function openClient(id) { currentId = id; const c = clients.find(x => x.id === id); if (!c) return; document.getElementById('title').textContent = c.name || 'Клиент'; renderDetail(c); showScreen('screenDetail'); }
+function renderDetail(c) {
+  const visits = (c.visits || []).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  const box = document.getElementById('detailBody');
+  box.innerHTML = `<div class="field"><label>Имя</label><input id="f_name" value="${esc(c.name)}" onchange="saveField('name',this.value)"></div><div class="field"><label>Телефон</label><input id="f_phone" type="tel" value="${esc(c.phone)}" onchange="saveField('phone',this.value)"></div><div class="field"><label>Адрес</label><input id="f_address" value="${esc(c.address)}" onchange="saveField('address',this.value)"></div><div class="field"><label>Следующее обслуживание</label><input id="f_next" type="date" value="${c.nextService||''}" onchange="saveField('nextService',this.value)"></div><div class="section-title"><span>🛠 Обслуживания (${visits.length})</span><button onclick="openVisitModal()">+ Добавить</button></div><div id="visitsBox"></div><div style="margin-top:28px"><button class="btn btn-danger" onclick="deleteClient()">🗑 Удалить</button></div>`;
+  const vbox = document.getElementById('visitsBox');
+  vbox.innerHTML = !visits.length ? '<div class="empty" style="padding:20px">Нет отметок</div>' : visits.map(v => `<div class="visit-card"><div class="visit-head"><span class="visit-date">📅 ${fmtDate(v.date)}</span><button class="file-chip" style="background:#fdecea;color:var(--danger);padding:4px 10px;border:none;cursor:pointer" onclick="deleteVisit('${v.id}')">✕</button></div>${v.comment ? `<div class="visit-comment">${esc(v.comment)}</div>` : ''}<div class="files" id="vf_${v.id}"></div></div>`).join('');
+  visits.forEach(v => { const fbox = document.getElementById('vf_'+v.id); if (fbox && v.files?.length) fbox.innerHTML = v.files.map(f => `<a class="file-chip" href="#" onclick="openFile(event,'${f.id}')">📎 <span class="name">${esc(f.name)}</span><span class="del" onclick="removeFile(event,'${v.id}','${f.id}')">✕</span></a>`).join(''); });
+}
+function saveField(f, v) { const c = clients.find(x => x.id === currentId); if (!c) return; c[f] = v; saveClients(); if (f === 'name') document.getElementById('title').textContent = v || 'Клиент'; renderClients(); }
+function newClient() { const c = { id: uid(), name: 'Новый', phone: '', address: '', nextService: '', visits: [] }; clients.unshift(c); saveClients(); openClient(c.id); setTimeout(() => { const i = document.getElementById('f_name'); if(i){i.focus();i.select();} }, 100); }
+function deleteClient() { if (!confirm('Удалить?')) return; clients = clients.filter(x => x.id !== currentId); saveClients(); goBack(); }
+function openVisitModal() { document.getElementById('visitDate').value = todayStr(); document.getElementById('visitComment').value = ''; pendingFiles = []; renderPending(); document.getElementById('visitModal').classList.add('open'); }
+function closeVisitModal() { document.getElementById('visitModal').classList.remove('open'); }
+function onFilesSelected(inp) { for (const f of inp.files) pendingFiles.push(f); inp.value = ''; renderPending(); }
+function renderPending() { document.getElementById('pendingFiles').innerHTML = pendingFiles.map((f,i) => `<div class="pending-file">📎 <span>${esc(f.name)}</span><button onclick="removePending(${i})">✕</button></div>`).join(''); }
+function removePending(i) { pendingFiles.splice(i,1); renderPending(); }
+async function addVisit() {
+  const c = clients.find(x => x.id === currentId); if (!c) return;
+  const date = document.getElementById('visitDate').value || todayStr(); const comment = document.getElementById('visitComment').value.trim();
+  const files = [];
+  for (const file of pendingFiles) { const fid = uid(); try { await dbSave(fid, file, file.name, file.type); files.push({ id: fid, name: file.name, type: file.type }); } catch(e){} }
+  if (!c.visits) c.visits = []; c.visits.push({ id: uid(), date, comment, files }); saveClients(); closeVisitModal(); renderDetail(c); toast('Добавлено');
+}
+function deleteVisit(vid) { if (!confirm('Удалить?')) return; const c = clients.find(x => x.id === currentId); c.visits = c.visits.filter(v => v.id !== vid); saveClients(); renderDetail(c); }
+async function openFile(e, fid) { e.preventDefault(); e.stopPropagation(); try { const f = await dbGet(fid); if (f) { const url = URL.createObjectURL(f.blob); window.open(url, '_blank'); setTimeout(() => URL.revokeObjectURL(url), 60000); } } catch(err){} }
+async function removeFile(e, vid, fid) { e.preventDefault(); e.stopPropagation(); if(!confirm('Удалить?')) return; const c = clients.find(x => x.id === currentId); const v = c.visits.find(x => x.id === vid); v.files = v.files.filter(f => f.id !== fid); await dbDel(fid); saveClients(); renderDetail(c); }
+function openMenu() { document.getElementById('menuModal').classList.add('open'); }
+function closeMenu() { document.getElementById('menuModal').classList.remove('open'); }
+function exportData() { closeMenu(); const blob = new Blob([JSON.stringify({clients})], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click(); }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+initDB().then(() => renderClients()).catch(() => renderClients());
+</script>
+</body>
+</html>
